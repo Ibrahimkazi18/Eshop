@@ -28,7 +28,40 @@
                   "example": "ibirfkazi@gmail.com"
                 },
                 "password": {
-                  "example": "password1234"
+                  "example": "1234abc"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/verify-user": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "ibirfkazi@gmail.com"
+                },
+                "otp": {
+                  "example": "1234"
+                },
+                "name": {
+                  "example": "ibrahim"
+                },
+                "password": {
+                  "example": "1234abc"
                 }
               }
             }
