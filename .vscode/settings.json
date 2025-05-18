@@ -1,0 +1,3 @@
+{
+  "tailwindCSS.tailwindConfig": "apps/user-ui/src/tailwind.config.js"
+}
