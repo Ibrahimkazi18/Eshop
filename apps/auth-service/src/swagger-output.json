@@ -6,12 +6,12 @@
     "version": "1.0.0"
   },
   "host": "localhost:6001",
-  "basePath": "/",
+  "basePath": "/api",
   "schemes": [
     "http"
   ],
   "paths": {
-    "/api/user-registration": {
+    "/user-registration": {
       "post": {
         "description": "",
         "parameters": [
@@ -41,7 +41,7 @@
         }
       }
     },
-    "/api/verify-user": {
+    "/verify-user": {
       "post": {
         "description": "",
         "parameters": [
@@ -62,6 +62,60 @@
                 },
                 "password": {
                   "example": "1234abc"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/login-user": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "ibirfkazi@gmail.com"
+                },
+                "password": {
+                  "example": "1234abc"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/reset-password-user": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "ibirfkazi@gmail.com"
+                },
+                "newPassword": {
+                  "example": "123abc"
                 }
               }
             }

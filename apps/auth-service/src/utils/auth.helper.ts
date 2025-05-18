@@ -1,8 +1,9 @@
 import crypto from "crypto";
 import { ValidationError } from "@packages/error-handler";
-import { NextFunction } from "express";
+import e, { NextFunction, Request, Response } from "express";
 import redis from "@packages/libs/redis";
 import { sendEmail } from "./sendMail";
+import prisma from "@packages/libs/prisma";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -95,4 +96,55 @@ export const verifyOtp = async (email: string, otp: string, next:NextFunction) =
     }
 
     await redis.del(`otp:${email}`, failedAttemptsKey);
+}
+
+export const handleForgotPassword = async (req: Request, res: Response, next:NextFunction, userType: "user" | "seller") => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            throw next(new ValidationError("Email is required!"));
+        }
+
+        // user or seller in db
+        const user = userType === "user" && await prisma.users.findUnique({ where : { email }});
+
+        if(!user) {
+            throw next(new ValidationError(`${userType} not found.`));
+        }
+
+        // Check otp restrictions
+        await checkOtpRestrictions(email, next);
+        await trackOtp(email, next);
+        
+        // generate and send otp if all is good
+        await sendOtp(user.name, email, userType === 'user' ? 'forgot-password-user-mail' : 'forgot-password-seller-mail');
+
+        res.status(200).json({
+            message: "OTP sent to email. Please verify your account."
+        });
+
+
+    } catch (error) {
+        throw next(error);
+    }
+}
+
+export const verifyForgotPasswordOtp = async (req: Request, res: Response, next:NextFunction) => {
+    try {
+        const {email, otp} = req.body;
+
+        if(!email || !otp) {
+            throw next(new ValidationError("Email and OTP are required!"));
+        }
+
+        verifyOtp(email, otp, next);
+
+        res.status(200).json({
+            message: "OTP verified. you can now reset your password."
+        })
+
+    } catch (error) {
+        throw next(error);
+    }
 }
