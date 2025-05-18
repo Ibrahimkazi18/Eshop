@@ -6,7 +6,9 @@
     "importHelpers": true,
     "isolatedModules": true,
     "baseUrl": ".",
-    "lib": ["es2022"],
+    "lib": [
+      "es2022"
+    ],
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "noEmitOnError": true,
@@ -22,6 +24,8 @@
         "packages/*"
       ]
     },
-    "customConditions": ["development"]
+    "customConditions": [
+      "development"
+    ]
   }
 }

@@ -45,3 +45,7 @@ Thumbs.db
 .nx/workspace-data
 
 test-output
+
+# Next.js
+.next
+out
