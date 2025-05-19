@@ -61,7 +61,7 @@ export const trackOtp = async (email: string, next: NextFunction) => {
         );
     }
 
-    await redis.set(otpRequestKey, otpRequestKey+1, "EX", 3600);  // Tracking request and increment by one
+    await redis.set(otpRequestKey, otpRequests+1, "EX", 3600);  // Tracking request and increment by one
 }
 
 export const sendOtp = async (name: string, email: string, template:string) => {
@@ -78,8 +78,8 @@ export const sendOtp = async (name: string, email: string, template:string) => {
 export const verifyOtp = async (email: string, otp: string, next:NextFunction) => {
     const storedOtp = await redis.get(`otp:${email}`);
 
-    if(!sendOtp) {
-        throw next(new ValidationError("Invalid or Expired OTP"));
+    if(!storedOtp) {
+        return next(new ValidationError("Invalid or Expired OTP"));
     }
 
     const failedAttemptsKey = `otp_attempts:${email}`;
@@ -89,10 +89,10 @@ export const verifyOtp = async (email: string, otp: string, next:NextFunction) =
         if(failedAttempts >= 2) {
             await redis.set(`otp_lock:${email}`, "locked", "EX", 1800);
             await redis.del(`otp:${email}`, failedAttemptsKey);
-            throw next(new ValidationError("Too many failed attempts! Now your account is locked. Please try again after 30 minutes."));
+            return next(new ValidationError("Too many failed attempts! Now your account is locked. Please try again after 30 minutes."));
         }
         await redis.set(failedAttemptsKey, failedAttempts+1, "EX", 300);
-        throw next(new ValidationError(`Incorrect OTP. ${2 - failedAttempts} attempts left.`));
+        return next(new ValidationError(`Incorrect OTP. ${2 - failedAttempts} attempts left.`));
     }
 
     await redis.del(`otp:${email}`, failedAttemptsKey);
@@ -103,14 +103,14 @@ export const handleForgotPassword = async (req: Request, res: Response, next:Nex
         const { email } = req.body;
 
         if (!email) {
-            throw next(new ValidationError("Email is required!"));
+            return next(new ValidationError("Email is required!"));
         }
 
         // user or seller in db
         const user = userType === "user" && await prisma.users.findUnique({ where : { email }});
 
         if(!user) {
-            throw next(new ValidationError(`${userType} not found.`));
+            return next(new ValidationError(`${userType} not found.`));
         }
 
         // Check otp restrictions
@@ -126,7 +126,7 @@ export const handleForgotPassword = async (req: Request, res: Response, next:Nex
 
 
     } catch (error) {
-        throw next(error);
+        return next(error);
     }
 }
 
@@ -135,16 +135,16 @@ export const verifyForgotPasswordOtp = async (req: Request, res: Response, next:
         const {email, otp} = req.body;
 
         if(!email || !otp) {
-            throw next(new ValidationError("Email and OTP are required!"));
+            return next(new ValidationError("Email and OTP are required!"));
         }
 
-        verifyOtp(email, otp, next);
+        await verifyOtp(email, otp, next);
 
         res.status(200).json({
             message: "OTP verified. you can now reset your password."
         })
 
     } catch (error) {
-        throw next(error);
+        return next(error);
     }
 }
