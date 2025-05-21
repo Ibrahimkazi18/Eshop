@@ -6,8 +6,7 @@ const axiosInstance = axios.create({
 })
 
 let isRefreshing = false;
-
-let refresehSubscribers : (() => void)[] = [];
+let refreshSubscribers : (() => void)[] = [];
 
 
 // Handle logouts and prevent infinite loops
@@ -20,14 +19,14 @@ const handleLogout = () => {
 
 // Handle adding a new access token to queued requests
 const subscribeTokenRefresh = (callback : () => void) => {
-    refresehSubscribers.push(callback);
+    refreshSubscribers.push(callback);
 }
 
 
 // Execute the queued requests after refreshing
 const onRefreshSuccess = () => {
-    refresehSubscribers.forEach((callback) => callback());
-    refresehSubscribers = [];
+    refreshSubscribers.forEach((callback) => callback());
+    refreshSubscribers = [];
 }
 
 
@@ -68,7 +67,7 @@ axiosInstance.interceptors.response.use(
 
             } catch (error) {
                 isRefreshing = false;
-                refresehSubscribers = [];
+                refreshSubscribers = [];
                 handleLogout();
                 return Promise.reject(error);
             }

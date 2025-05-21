@@ -1,5 +1,5 @@
 {
-  "name": "@./api-gateway",
+  "name": "api-gateway",
   "version": "0.0.1",
   "private": true,
   "nx": {
@@ -11,15 +11,15 @@
           "build"
         ],
         "options": {
-          "buildTarget": "@./api-gateway:build",
+          "buildTarget": "api-gateway:build",
           "runBuildTargetDependencies": false
         },
         "configurations": {
           "development": {
-            "buildTarget": "@./api-gateway:build:development"
+            "buildTarget": "api-gateway:build:development"
           },
           "production": {
-            "buildTarget": "@./api-gateway:build:production"
+            "buildTarget": "api-gateway:build:production"
           }
         }
       }

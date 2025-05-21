@@ -139,12 +139,11 @@ export const refreshToken = async (req:Request, res:Response, next:NextFunction)
         if (!decoded || !decoded.id || !decoded.role) {
             return new JsonWebTokenError('Forbidden! Invalid refresh token.');
         }
-
-        let account;
-        if(decoded.role === "user") {
-            account = await prisma.users.findUnique({ where : { id : decoded.id }});
-        }
-
+        
+        // let account;
+        // if(decoded.role === "user") {
+        const account = await prisma.users.findUnique({ where : { id : decoded.id }});
+        
         if(!account) {
             return new AuthError("Forbidden! User or Seller not found");
         }
