@@ -5,10 +5,14 @@ import { useEffect, useState } from "react";
 import { navItems } from "../../config/constants";
 import Link from "next/link";
 import ProfileIcon from "../../assets/svg/profile-icon";
+import useUser from "../../hooks/useUser";
 
 const HeaderBottom = () => {
-  const [show, setShow] = useState(false)
-  const [isSticky, setIsSticky] = useState(false)
+  const [show, setShow] = useState(false);
+  const [isSticky, setIsSticky] = useState(false);
+
+  const {user} = useUser();
+  console.log(user);
 
   // Track scroll position
   useEffect(() => {
