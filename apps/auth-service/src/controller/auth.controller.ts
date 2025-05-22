@@ -66,7 +66,7 @@ export const verifyUser = async (req:Request, res:Response, next:NextFunction) =
         })
 
     } catch (error) {
-        throw next(error);
+        next(error);
     }
 }
 
@@ -239,4 +239,107 @@ export const resetUserPassword = async (req: Request, res: Response, next: NextF
     }
 }
 
-// logout user
+
+// register a new seller
+export const sellerRegistration = async (req:Request, res:Response, next:NextFunction) => {
+    try {
+        validateRegistrationData(req.body, "seller");
+
+        const { name, email } = req.body;
+
+        const existingSeller = await prisma.sellers.findUnique({ where : { email : email }});
+
+        if (existingSeller) {
+            throw new ValidationError("Seller already exists with this email.")
+        }
+
+        await checkOtpRestrictions(email, next);
+        await trackOtp(email, next);
+        await sendOtp(name, email, 'seller-activation')
+
+        res.status(200).json({
+            message : "OTP sent to email. Please verify your account."
+        });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+// Verify seller with OTP
+export const verifySeller = async (req:Request, res:Response, next:NextFunction) => {
+        try {
+        const { email, otp, name, password, phone_number, country} = req.body;
+
+        if ( !email || !otp || !name || !password || !phone_number || !country) {
+            throw next(new ValidationError("All fileds are required!"));
+        }
+
+        const existingSeller = await prisma.sellers.findUnique({ where: { email }})
+
+        if(existingSeller) {
+            throw next(new ValidationError("Seller already exist with this email!"));
+        }
+
+        await verifyOtp(email, otp, next);
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await prisma.sellers.create({
+            data : {
+                name,
+                email,
+                password: hashedPassword,
+                phone_number,
+                country
+            }
+        })
+
+        res.status(200).json({
+            success: true,
+            message: "Seller registered succefully!"
+        })
+
+    } catch (error) {
+        next(error);
+    }
+}
+
+
+// creating a new shop
+export const createShop = async (req:Request, res:Response, next:NextFunction) => {
+        try {
+        const { name, bio, address, opening_hours, website, category, sellerId} = req.body;
+
+        if ( !name || !bio || !address || !opening_hours || !website || !category || !sellerId) {
+            throw next(new ValidationError("All fileds are required!"));
+        }
+
+        const shopData : any = {
+            name,
+            bio,
+            address,
+            opening_hours,
+            category,
+            sellerId
+        }
+
+        if(website && website.trim() !== ''){
+            shopData.website = website
+        }
+
+        const shop = await prisma.shops.create({
+            data : shopData
+        })
+
+        res.status(200).json({
+            success: true,
+            message: "Shop registered succefully!",
+            shop
+        })
+
+    } catch (error) {
+        next(error);
+    }
+}
