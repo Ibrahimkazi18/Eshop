@@ -18,7 +18,7 @@ const isAuthenticated = async (req: any, res: Response, next: NextFunction) => {
         const decoded = jwt.verify(
             token,
             process.env.ACCESS_TOKEN_SECRET as string
-        )  as { id : string, role : "user" | "seller", user: string};
+        )  as { id : string, role : "user" | "seller", user: string, seller :  string};
 
         if (!decoded) {
             return res.status(401).json({
@@ -33,7 +33,7 @@ const isAuthenticated = async (req: any, res: Response, next: NextFunction) => {
         }
         else if (decoded.role === "seller") {
             account = await prisma.sellers.findUnique({ 
-                where : { id : decoded.id ? decoded.id : decoded.user},
+                where : { id : decoded.id ? decoded.id : decoded.seller},
                 include : { shop : true }
             });
             req.seller = account;

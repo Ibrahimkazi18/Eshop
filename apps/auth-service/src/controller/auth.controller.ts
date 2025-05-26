@@ -98,6 +98,9 @@ export const loginUser = async (req:Request, res:Response, next:NextFunction) =>
             throw next(new AuthError("Invalid email or passoword!"));
         }
 
+        res.clearCookie("seller_access_token");
+        res.clearCookie("seller_refresh_token");
+
         // Generate access and refresh token
         const accessToken = jwt.sign(
             { user: user.id, role: "user" }, 
@@ -131,24 +134,33 @@ export const loginUser = async (req:Request, res:Response, next:NextFunction) =>
 
 
 // refresh token user
-export const refreshToken = async (req:Request, res:Response, next:NextFunction) => {
+export const refreshToken = async (req:any, res:Response, next:NextFunction) => {
     try {
-        const refreshTok = req.cookies.refresh_token;
+        const refreshTok = req.cookies["refresh_token"] || 
+                           req.cookies["seller_refresh_token"] || 
+                           req.headers.authorization?.split(" ")[1];
 
         if(!refreshTok) {
             return new ValidationError('Unauthorized! No refresh token.')
         }
 
-        const decoded = jwt.verify(refreshTok, process.env.REFRESH_TOKEN_SECRET as string) as { id : string, role : string};
+        const decoded = jwt.verify(refreshTok, process.env.REFRESH_TOKEN_SECRET as string) as { id : string, role : string, user : string, seller : string};
 
         if (!decoded || !decoded.id || !decoded.role) {
             return new JsonWebTokenError('Forbidden! Invalid refresh token.');
         }
         
-        // let account;
-        // if(decoded.role === "user") {
-        const account = await prisma.users.findUnique({ where : { id : decoded.id }});
-        
+        let account;
+        if(decoded.role === "user") {
+            account = await prisma.users.findUnique({ where : { id : decoded.id ? decoded.id : decoded.user }});
+        }
+        else if (decoded.role === "seller") {
+            account = await prisma.sellers.findUnique({ 
+                where : { id : decoded.id ? decoded.id : decoded.seller }, 
+                include : {shop : true}
+            });
+        }
+
         if(!account) {
             return new AuthError("Forbidden! User or Seller not found");
         }
@@ -159,9 +171,16 @@ export const refreshToken = async (req:Request, res:Response, next:NextFunction)
             { expiresIn : "15m" }
         );
 
-        setCookie(res, 'access_token', newAccessToken);
+        if(decoded.role === "user") {
+            setCookie(res, 'access_token', newAccessToken);
+        }
+        else if (decoded.role === "seller") {
+            setCookie(res, 'seller_access_token', newAccessToken);
+        }
 
-        res.status(201).json({ success : true });
+        req.role = decoded.role;
+
+        return res.status(201).json({ success : true });
         
     } catch (error) {
         return next(error);
@@ -421,6 +440,9 @@ export const loginSeller = async (req:Request, res:Response, next:NextFunction) 
         if(!isMatch) {
             throw next(new AuthError("Invalid email or passoword!"));
         }
+
+        res.clearCookie("access_token");
+        res.clearCookie("refresh_token");
 
         // Generate access and refresh token
         const accessToken = jwt.sign(
