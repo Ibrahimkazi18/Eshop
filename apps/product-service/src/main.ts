@@ -2,10 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import { errorMiddleware } from '@packages/error-handler/error-middleware';
 import cookieParser from 'cookie-parser';
-import router from './routes/auth.router';
+import router from './routes/product.routes';
 import swaggerUi from 'swagger-ui-express'
+const swaggerDocument = require('./swagger-output.json')
 
-const swaggerDocument = require("./swagger-output.json");
 const app = express();
 
 app.use(cors({
@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.get('/', (req, res) => {
-    res.send({ 'message': 'Hello API'});
+    res.send({ 'message': 'Hello Product API'});
 });
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -31,10 +31,10 @@ app.use("/api", router);
 
 app.use(errorMiddleware);
 
-const port = process.env.PORT || 6001;
+const port = process.env.PORT || 6002;
 
 const server = app.listen(port, () => {
-    console.log(`[ ready ] Auth Service running at http://localhost:${port}/api`);
+    console.log(`[ ready ] Product Service running at http://localhost:${port}/api`);
     console.log(`Swagger Docs avalaible at http://localhost:${port}/api-docs`)
 })
 
