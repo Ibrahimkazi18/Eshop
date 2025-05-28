@@ -8,8 +8,8 @@ import ColorSelector from "packages/components/color-selector";
 import CustomProperties from "packages/components/custom-properties";
 import CustomSpecification from "packages/components/custom-specification";
 import Input from "packages/components/input";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useMemo, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 
 
@@ -36,12 +36,14 @@ const CreateProduct = () => {
   })
 
   const categories = data?.categories || [];
-  const subCategories = data?.subCategories || {};
+  const subCategoriesData = data?.subCategories || {};
 
   const selectedCategory = watch("category");
   const regularPrice = watch("regular_price");
 
-  console.log(categories, subCategories);
+  const subCategories = useMemo(() => {
+    return selectedCategory ? subCategoriesData[selectedCategory] || [] : [];
+  }, [selectedCategory, subCategoriesData]);
 
   const onSubmit = (data : any) => {
     console.log(data);
@@ -281,6 +283,95 @@ const CreateProduct = () => {
                     <label className="block font-semibold text-gray-300 mb-1">
                       Category *
                     </label>
+
+                    {
+                      isLoading ? (
+                        <p className="text-gray-400">
+                          Loading categories...
+                        </p>
+                      ) : isError ? (
+                        <p className="text-red-500">
+                          Failed to load categories
+                        </p>
+                      ) : (
+                        <Controller 
+                          name="category"
+                          control={control}
+                          rules={{ required : "Category is required! "}}
+                          render={({field}) => (
+                            <select
+                              {...field}
+                              className="w-full border outline-none border-gray-700 bg-transparent py-1 px-2 rounded-md"
+                            >
+                              {" "}
+                              <option value="" className="bg-black">
+                                Select Category
+                              </option>
+
+                              { categories?.map((category : string, index : number) => (
+                                <option value={category} key={index} className="bg-black">
+                                  {category}
+                                </option>
+                              )) }
+                            </select>
+                          )}
+                        />
+                      )
+                    }
+                    {errors.category && (
+                      <p className="text-red-500 text-sm">
+                        {errors.category.message as string}
+                      </p>
+                    )}
+
+                    <div className="mt-2">
+                      <label className="block font-semibold text-gray-300 mb-1">
+                        Subcategory *
+                      </label>
+
+                      {
+                        isLoading ? (
+                          <p className="text-gray-400">
+                            Loading subcategories...
+                          </p>
+                        ) : isError ? (
+                          <p className="text-red-500">
+                            Failed to load subcategories
+                          </p>
+                        ) : (
+                          <Controller 
+                            name="subcategory"
+                            control={control}
+                            rules={{ required : "Subcategory is required! "}}
+                            render={({field}) => (
+                              <select
+                                {...field}
+                                className="w-full border outline-none border-gray-700 bg-transparent py-1 px-2 rounded-md"
+                              >
+                                {" "}
+                                <option value="" className="bg-black">
+                                  Select Subcategory
+                                </option>
+
+                                { subCategories?.map((subcategory : string, index : number) => (
+                                  <option value={subcategory} key={index} className="bg-black">
+                                    {subcategory}
+                                  </option>
+                                )) }
+                              </select>
+                            )}
+                          />
+                        )
+                      }
+                      {errors.subcategory && (
+                        <p className="text-red-500 text-sm">
+                          {errors.subcategory.message as string}
+                        </p>
+                      )}
+
+                    </div>
+
+                    
                   </div>
               </div>
             </div>

@@ -1,5 +1,5 @@
 {
-  "name": "@./product-service",
+  "name": "product-service",
   "version": "0.0.1",
   "private": true,
   "nx": {
@@ -11,15 +11,15 @@
           "build"
         ],
         "options": {
-          "buildTarget": "@./product-service:build",
+          "buildTarget": "product-service:build",
           "runBuildTargetDependencies": false
         },
         "configurations": {
           "development": {
-            "buildTarget": "@./product-service:build:development"
+            "buildTarget": "product-service:build:development"
           },
           "production": {
-            "buildTarget": "@./product-service:build:production"
+            "buildTarget": "product-service:build:production"
           }
         }
       }
