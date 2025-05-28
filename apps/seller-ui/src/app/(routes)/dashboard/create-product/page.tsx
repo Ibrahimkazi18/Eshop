@@ -8,6 +8,8 @@ import ColorSelector from "packages/components/color-selector";
 import CustomProperties from "packages/components/custom-properties";
 import CustomSpecification from "packages/components/custom-specification";
 import Input from "packages/components/input";
+import RichTextEditor from "packages/components/rich-text-editor";
+import SizeSelector from "packages/components/size-selector";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -17,7 +19,7 @@ const CreateProduct = () => {
   const { register, control, setValue, watch, handleSubmit, formState : { errors }} = useForm();
 
   const [openImageModal, setOpenImageModal] = useState(false);
-  const [isChanged, setIsChanged] = useState(false);
+  const [isChanged, setIsChanged] = useState(true);
   const [images, setImages] = useState<(File | null)[]>([null]);
   const [loading, setLoading] = useState(false);
 
@@ -48,6 +50,8 @@ const CreateProduct = () => {
   const onSubmit = (data : any) => {
     console.log(data);
   }
+
+  const handleSaveDraft = () => {}
 
   const handleImageChange = (file : File | null, index : number) => {
     const updatedImages = [...images];
@@ -370,12 +374,161 @@ const CreateProduct = () => {
                       )}
 
                     </div>
+                  </div>
 
-                    
+                  <div className="mt-2">
+                    <label className="block text-gray-300 mb-1 font-semibold">
+                      Detailed Description * (Min 100 words)
+                    </label>
+
+                    <Controller 
+                      name="detailed_description"
+                      control={control}
+                      rules={{
+                        required : "Detailed Description is required!",
+                        validate : (value) => {
+                          const wordCount = value?.split(/\s+/).filter((word : string) => word).length;
+
+                          return (
+                            wordCount >= 100 || `Description must be atleast 100 words! ${wordCount}/100`
+                          )
+                        }
+                      }}
+                      render={({field}) => (
+                        <RichTextEditor value={field.value} onChange={field.onChange}/>
+                      )}
+                    />
+
+                    {errors.detailed_description && (
+                      <p className="text-red-500 text-sm">
+                        {errors.detailed_description.message as string}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-2">
+                    <Input 
+                      label="Vide URL"
+                      placeholder="https://www.youtube.com/embed/xyz123"
+                      {...register("video_url", {
+                        pattern : {
+                          value : /^https:\/\/(www\.)?youtube\.com\/embed\/[a-zA-Z0-9_-]+$/,
+                          message : "Invalide YouTube URL Format! Use format: https://www.youtube.com/embed/xyz123"
+                        }
+                      })}
+                    />
+
+                    {errors.video_url && (
+                      <p className="text-red-500 text-sm">
+                        {errors.video_url.message as string}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-2">
+                    <Input 
+                      label="Regular Price"
+                      placeholder="20$"
+                      {...register("regular_price", {
+                        valueAsNumber : true,
+                        min : { value : 1, message : "Price must be atleast 1"},
+                        validate : (value) => !isNaN(value) || 'Only numbers are allowed',
+                      })}
+                    />
+
+                    {errors.regular_price && (
+                      <p className="text-red-500 text-sm">
+                        {errors.regular_price.message as string}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-2">
+                    <Input 
+                      label="Sale Price *"
+                      placeholder="15$"
+                      {...register("sale_price", {
+                        required : "Sale price is required",
+                        valueAsNumber : true,
+                        min : { value : 1, message : "Price must be atleast 1"},
+                        validate : (value) => {
+                          if (isNaN(value)) return 'Only numbers are allowed'
+
+                          if (regularPrice && value >= regularPrice) {
+                            return "Sale Price must be less than Regular Price"
+                          }
+
+                          return true;
+                        },
+                      })}
+                    />
+
+                    {errors.sale_price && (
+                      <p className="text-red-500 text-sm">
+                        {errors.sale_price.message as string}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-2">
+                    <Input 
+                      label="Stock *"
+                      placeholder="100"
+                      {...register("stock", {
+                        required : "Stock is required",
+                        valueAsNumber : true,
+                        min : { value : 1, message : "Stock must be atleast 1"},
+                        max : { value : 1000, message : "Stock cannot exceed 1000"},
+                        validate : (value) => {
+                          if (isNaN(value)) return 'Only numbers are allowed'
+
+                          if (!Number.isInteger(value)) {
+                            return "Stock must be a whole number"
+                          }
+
+                          return true;
+                        },
+                      })}
+                    />
+
+                    {errors.stock && (
+                      <p className="text-red-500 text-sm">
+                        {errors.stock.message as string}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-2">
+                    <SizeSelector control={control} errors={errors} />
+                  </div>
+
+                  <div className="mt-3">
+                    <label className="block font-semibold text-gray-300 mb-1">
+                      Select Discount Codes (optional)
+                    </label>
                   </div>
               </div>
             </div>
+
         </div>
+      </div>
+      <div className="mt-6 flex justify-end gap-3">
+        {isChanged && (
+          <button
+            type="button"
+            className="px-4 py-2 bg-gray-600 text-white rounded-md"
+            onClick={handleSaveDraft}
+          >
+            Save Draft
+          </button>
+        )}
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md"
+          disabled={loading}
+        >
+          { loading ? 'Creating ... ' : 'Create'}
+        </button>
       </div>
     </form>
   )
