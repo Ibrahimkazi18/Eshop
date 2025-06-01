@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import ImagePlaceHolder from "apps/seller-ui/src/shared/components/image-placeholder";
 import axiosInstance from "apps/seller-ui/src/utils/axiosInstance";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 import ColorSelector from "packages/components/color-selector";
 import CustomProperties from "packages/components/custom-properties";
 import CustomSpecification from "packages/components/custom-specification";
@@ -35,7 +36,16 @@ const CreateProduct = () => {
     },
     staleTime: 1000 * 60 * 5,
     retry: 2,
-  })
+  });
+
+  const { data : discountCodes = [], isLoading: DiscountCodesLoading} = useQuery({
+    queryKey : ["shop-discounts"],
+    queryFn : async () => {
+        const response = await axiosInstance.get("/product/api/get-discount-codes");
+        return response?.data?.discount_code || [];
+    }
+  });
+
 
   const categories = data?.categories || [];
   const subCategoriesData = data?.subCategories || {};
@@ -96,7 +106,7 @@ const CreateProduct = () => {
       </h2>
 
       <div className="flex items-center">
-        <span className="text-[#80Deea] cursor-pointer">Dashboard</span>
+        <Link href={"/dashboard"} className="text-[#80Deea] cursor-pointer">Dashboard</Link>
         <ChevronRight size={20} className="opacity-[.8]" />
         <span className="">Create Product</span>
       </div>
@@ -506,6 +516,39 @@ const CreateProduct = () => {
                     <label className="block font-semibold text-gray-300 mb-1">
                       Select Discount Codes (optional)
                     </label>
+
+                    {DiscountCodesLoading ? (
+                      <p className="text-gray-400">
+                        Loading discount codes ...
+                      </p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {discountCodes?.map((discount:any) => (
+                          <button 
+                            key={discount.public_name}
+                            className={`px-3 py-1 rounded-md text-sm font-semibold border 
+                              ${watch("discountCodes")?.includes(discount.id) 
+                                ? 'bg-blue-600 text-white border-blue-600' 
+                                : 'bg-gray-800 text-gray-300 border-gray-600 hover:bg-gray-700'
+                              }`}
+                            onClick={() => {
+                              const currentSelection = watch("discountCodes") || [];
+                              const updatedSelection = currentSelection?.includes(
+                                discount.id
+                              ) 
+                                ? currentSelection.filter((id:string) => id !== discount.id)
+                                : [ ...currentSelection, discount.id]
+
+                              setValue("discountCodes", updatedSelection);
+                            }}
+                          >
+                            {discount.public_name} ({discount.discountValue} 
+                              {discount.discountType === "percentage" ? "%" : "$"}
+                            )
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
               </div>
             </div>
