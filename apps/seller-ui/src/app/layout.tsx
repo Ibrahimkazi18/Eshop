@@ -1,3 +1,4 @@
+import { Toaster } from 'react-hot-toast';
 import './global.css';
 import Providers from './provider';
 import { Poppins, Roboto } from "next/font/google"
@@ -28,6 +29,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${roboto.variable} ${poppins.variable} min-h-screen bg-slate-900 font-sans antialiased`}>
         <Providers>
+          <Toaster 
+            position="bottom-right"
+            reverseOrder={false}
+          />
           {children}
         </Providers>
       </body>

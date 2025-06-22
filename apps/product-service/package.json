@@ -2,7 +2,13 @@
   "name": "product-service",
   "version": "0.0.1",
   "private": true,
+  "scripts": {
+    "dev": "node src/main.ts"
+  },
   "nx": {
+    "name": "product-service",
+    "project-type": "application",
+    "sourceType": "product-service/src",
     "targets": {
       "serve": {
         "executor": "@nx/js:node",

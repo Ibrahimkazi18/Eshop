@@ -60,7 +60,6 @@ const DiscountCodesPage = () => {
   });
 
   const handleDeleteClick = async (discount : any) => {
-    console.log(discount);
     setSelectedDiscount(discount);
     setShowDeleteModal(true);
   }

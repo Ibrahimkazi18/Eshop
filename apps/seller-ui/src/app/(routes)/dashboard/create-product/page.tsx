@@ -3,8 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 import ImagePlaceHolder from "apps/seller-ui/src/shared/components/image-placeholder";
 import axiosInstance from "apps/seller-ui/src/utils/axiosInstance";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ColorSelector from "packages/components/color-selector";
 import CustomProperties from "packages/components/custom-properties";
 import CustomSpecification from "packages/components/custom-specification";
@@ -13,16 +14,22 @@ import RichTextEditor from "packages/components/rich-text-editor";
 import SizeSelector from "packages/components/size-selector";
 import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 
-
+interface UploadedImageType {
+  fileId : string;
+  fileUrl : string;
+}
 
 const CreateProduct = () => {
   const { register, control, setValue, watch, handleSubmit, formState : { errors }} = useForm();
 
-  const [openImageModal, setOpenImageModal] = useState(false);
   const [isChanged, setIsChanged] = useState(true);
-  const [images, setImages] = useState<(File | null)[]>([null]);
+  const [images, setImages] = useState<(UploadedImageType | null)[]>([null]);
+  const [pictureUploadingLoader, setPictureUploadingLoader] = useState(false);
+  const [selectedImage, setSelectedImage] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["categories"],
@@ -57,45 +64,92 @@ const CreateProduct = () => {
     return selectedCategory ? subCategoriesData[selectedCategory] || [] : [];
   }, [selectedCategory, subCategoriesData]);
 
-  const onSubmit = (data : any) => {
-    console.log(data);
+  const convertFileToBase64 = async (file : File) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    })
   }
 
-  const handleSaveDraft = () => {}
+  const handleImageChange = async (file : File | null, index : number) => {
+    if(!file) {
+      return;
+    }
 
-  const handleImageChange = (file : File | null, index : number) => {
-    const updatedImages = [...images];
+    setPictureUploadingLoader(true);
+    try {
+      const fileName = await convertFileToBase64(file);
 
-    updatedImages[index] = file;
+      const response = await axiosInstance.post("/product/api/upload-product-image", {fileName});
 
-    if(index === images.length - 1 && images.length < 8) {
-      updatedImages.push(null);
-    } 
+      const updatedImages = [...images];
+      const uploadedImage = {
+        fileId : response.data.file_id,
+        fileUrl : response.data.file_url
+      }
+      updatedImages[index] = uploadedImage;
 
-    setImages(updatedImages);
-    setValue("images", updatedImages);
+      if(index === images.length - 1 && updatedImages.length < 8) {
+        updatedImages.push(null)
+      }
+
+      setImages(updatedImages);
+      setValue("images", updatedImages);
+      
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setPictureUploadingLoader(false);
+    }
   }
 
-  const handleRemoveImage = (index : number) => {
-    console.log(index, "remove")
-    setImages((prev) => {
-      let updatedImages = [...images];
+  const handleRemoveImage = async (index : number) => {
+    setPictureUploadingLoader(true);
+    try {
+      const updatedImages = [...images];
 
-      if(index === -1) {
-        updatedImages[0] = null;
-      }
-      else {
-        updatedImages.splice(index, 1);
-      }
+      const imageToDelete = updatedImages[index];
 
-      if(updatedImages.includes(null) && updatedImages.length < 8) {
-        updatedImages.push(null);
+      if(imageToDelete && typeof imageToDelete === "object") {
+        await axiosInstance.delete("/product/api/delete-product-image", { data : { fileId : imageToDelete.fileId } });
       }
 
-      return updatedImages;
-    });
+      updatedImages.splice(index, 1);
 
-    setValue("images", images);
+      // Add null
+      if(!updatedImages.includes(null) && updatedImages.length < 8) {
+        updatedImages.push(null)
+      }
+
+      setImages([...updatedImages]);
+      setValue("images", [...updatedImages]);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setPictureUploadingLoader(false);
+    }
+  }
+
+  const handleSaveDraft = async (data : any) => {}
+
+  const onSubmit = async (data : any) => {
+    try {
+      setLoading(true);
+
+      await axiosInstance.post("/product/api/create-product", data);
+
+      toast.success("Product created successfully!");
+      setIsChanged(false);
+
+      router.push("/dashboard/all-products");
+
+    } catch (error : any) {
+      toast.error(error?.data?.message)
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -117,25 +171,29 @@ const CreateProduct = () => {
         <div className="md:w-[35%]">
           {images?.length > 0 && (
             <ImagePlaceHolder  
-              setOpenImageModal={setOpenImageModal}
               size="750 x 850"
               small={false}
               index={0}
               onImageChange={handleImageChange}
+              pictureUploadingLoader={pictureUploadingLoader}
               onRemove={handleRemoveImage}
+              imagePreview={images[0]?.fileUrl ?? null}
+              setSelectedImage={setSelectedImage}
             />
           )}
 
           <div className="grid grid-cols-2 gap-3 mt-4">
             {images.slice(1).map((image, index) => (
               <ImagePlaceHolder  
-                setOpenImageModal={setOpenImageModal}
                 size="750 x 850"
                 key={index}
                 small={true}
                 index={index + 1}
                 onImageChange={handleImageChange}
+                pictureUploadingLoader={pictureUploadingLoader}
                 onRemove={handleRemoveImage}
+                imagePreview={image?.fileUrl ?? null}
+                setSelectedImage={setSelectedImage}
               />
             ))}
           </div>
@@ -170,7 +228,7 @@ const CreateProduct = () => {
                       validate : (value) => {
                         const wordCount = value.trim().split(/\s+/).length;
                         return (
-                          wordCount > 150 || `Description cannot exceed 150 words (Current: ${wordCount})`
+                          wordCount < 150 || `Description cannot exceed 150 words (Current: ${wordCount})`
                         )
                       }
                     })}
@@ -526,6 +584,7 @@ const CreateProduct = () => {
                         {discountCodes?.map((discount:any) => (
                           <button 
                             key={discount.public_name}
+                            type="button"
                             className={`px-3 py-1 rounded-md text-sm font-semibold border 
                               ${watch("discountCodes")?.includes(discount.id) 
                                 ? 'bg-blue-600 text-white border-blue-600' 
@@ -555,6 +614,7 @@ const CreateProduct = () => {
 
         </div>
       </div>
+
       <div className="mt-6 flex justify-end gap-3">
         {isChanged && (
           <button

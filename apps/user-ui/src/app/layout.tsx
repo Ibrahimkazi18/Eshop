@@ -2,6 +2,7 @@ import Header from '../shared/widgets/header';
 import './global.css';
 import { Poppins, Roboto } from "next/font/google"
 import Providers from './providers';
+import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
   title: 'Eshop',
@@ -30,7 +31,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${roboto.variable} ${poppins.variable}`}>
         <Providers>
-        <Header />  
+        <Header />
+        <Toaster 
+            position="bottom-right"
+            reverseOrder={false}
+          />  
         {children}
         </Providers>
       </body>

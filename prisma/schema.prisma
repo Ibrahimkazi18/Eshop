@@ -8,13 +8,15 @@ datasource db {
 }
 
 model images {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  file_id   String
-  url       String
-  userId    String? @unique @db.ObjectId 
-  shopId    String? @unique @db.ObjectId 
-  users     users?  @relation(fields: [userId], references: [id])
-  shops     shops? @relation(fields: [shopId], references: [id])
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  file_id       String
+  url           String
+  userId        String?   @db.ObjectId 
+  shopId        String?   @db.ObjectId 
+  productId     String?   @db.ObjectId 
+  users         users?    @relation(fields: [userId], references: [id])
+  shops         shops?    @relation(fields: [shopId], references: [id])
+  products      products? @relation(fields: [productId], references: [id])
 }
 
 model users {
@@ -23,7 +25,7 @@ model users {
   email     String  @unique
   password  String? 
   following String[]
-  avatar    images?
+  avatar    images[]
   reviews   shopReviews[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -46,7 +48,7 @@ model shops {
   name          String
   bio           String?
   category      String
-  avatar        images?
+  avatar        images[]
   coverBanner   String?
   address       String
   opening_hours String
@@ -58,6 +60,7 @@ model shops {
   sellers       sellers @relation(fields: [sellerId], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  products      products[]
 }
 
 model sellers {
@@ -88,4 +91,44 @@ model discount_codes {
   sellerId        String  @db.ObjectId
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+enum productStatus {
+  Active
+  Pending
+  Draft
+}
+
+model products {
+  id                    String          @id @default(auto()) @map("_id") @db.ObjectId
+  title                 String
+  slug                  String          @unique
+  category              String
+  subCategory           String
+  short_descirption     String
+  detailed_description  String?
+  images                images[]
+  video_url             String?
+  tags                  String[]
+  brand                 String?
+  colors                String[]
+  sizes                 String[]
+  starting_date         DateTime?
+  ending_date           DateTime?
+  stock                 Int
+  sale_price            Float
+  regular_price         Float
+  ratings               Float           @default(5)
+  warranty              String
+  custom_specification  Json?
+  custom_properties     Json
+  cash_on_delivery      String
+  discount_codes        String[]        @db.ObjectId
+  isDeleted             Boolean?        @default(false)
+  status                productStatus   @default(Active)
+  deletedAt             DateTime?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  shopId                String          @db.ObjectId
+  shop                  shops           @relation(fields: [shopId], references: [id])
 }

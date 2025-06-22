@@ -1,6 +1,8 @@
-import { Pencil, WandSparkles, X } from "lucide-react";
+"use client";
+
+import { Pencil, X } from "lucide-react";
 import Image from "next/image";
-import { Dispatch, SetStateAction, useState } from "react"
+import { Dispatch, SetStateAction } from "react"
 
 interface ImagePlaceHolderProps {
     size : string, 
@@ -9,17 +11,16 @@ interface ImagePlaceHolderProps {
     onRemove : (index : number) => void, 
     defaultImage ?: string | null, 
     index ?: any, 
-    setOpenImageModal : Dispatch<SetStateAction<boolean>>
+    setSelectedImage : Dispatch<SetStateAction<string>>,
+    imagePreview?: string | null;
+    pictureUploadingLoader : boolean
 }
 
-const ImagePlaceHolder = ({ size, small, onImageChange, onRemove, defaultImage = null, index = null, setOpenImageModal } : ImagePlaceHolderProps) => {
-  const [imagePreview, setImagePreview] = useState<string | null>(defaultImage);
-
+const ImagePlaceHolder = ({ size, small, onImageChange, onRemove, defaultImage = null, index = null, imagePreview = null, setSelectedImage, pictureUploadingLoader } : ImagePlaceHolderProps) => {
   const handleFileChange = (event : React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
     if(file) {
-        setImagePreview(URL.createObjectURL(file));
         onImageChange(file, index!);
     }
   }
@@ -33,17 +34,10 @@ const ImagePlaceHolder = ({ size, small, onImageChange, onRemove, defaultImage =
                 <button 
                     type="button" 
                     onClick={() => onRemove?.(index!)} 
+                    disabled={pictureUploadingLoader}
                     className="absolute top-3 right-3 p-2 !rounded bg-red-600 shadow-lg"
                 >
                     <X size={16}/>
-                </button>
-
-                <button 
-                    type="button" 
-                    onClick={() => setOpenImageModal(true)} 
-                    className="absolute top-3 right-[70px] p-2 !rounded bg-blue-500 shadow-lg cursor-pointer"
-                >
-                    <WandSparkles size={16}/>
                 </button>
             </>
         ) : (
