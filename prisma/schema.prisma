@@ -119,6 +119,7 @@ model products {
   sale_price            Float
   regular_price         Float
   ratings               Float           @default(5)
+  totalSales            Float           @default(0)
   warranty              String
   custom_specification  Json?
   custom_properties     Json
