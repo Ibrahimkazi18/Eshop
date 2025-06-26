@@ -117,7 +117,7 @@ const ProductCard = ({product, isEvent} : {product : any, isEvent ?: boolean}) =
                 <Eye  
                     className="cursor-pointer tex-[#4b5563] hover:scale-110 transition"
                     size={22}
-                    onClick={() => setOpen(true)}
+                    onClick={() => setOpen(!open)}
                 />
             </div>
 
