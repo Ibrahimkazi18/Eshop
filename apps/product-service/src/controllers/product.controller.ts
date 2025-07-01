@@ -274,6 +274,43 @@ export const getShopProduct = async (req: any, res: Response, next: NextFunction
     }
 }
 
+// search products
+export const searchProducts = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const query = req.query.q as string || "";
+
+        if(!query) {
+            next(new ValidationError("Query is required!"));
+            return;
+        }
+
+        const products = await prisma.products.findMany({
+            where: {
+                OR: [
+                    { title: { contains: query, mode: 'insensitive' } },
+                    { short_descirption: { contains: query, mode: 'insensitive' } },
+                    { tags: { hasSome: [query] } }
+                ]
+            },
+            include: {
+                images: true,
+                shop: {
+                    include : {
+                        avatar : true
+                    }
+                }
+            }
+        });
+
+        res.status(200).json({
+            products
+        });
+
+    } catch (error) {
+        next(error);
+    }
+}
+
 // delete product
 export const deleteProduct = async (req: any, res: Response, next: NextFunction) => {
     try {

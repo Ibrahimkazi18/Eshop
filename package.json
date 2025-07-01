@@ -41,7 +41,9 @@
     "stripe": "^18.1.1",
     "styled-components": "^6.1.18",
     "swagger-autogen": "^2.23.7",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "ua-parser-js": "^2.0.4",
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@nx/esbuild": "20.8.0",
