@@ -20,6 +20,12 @@
     },
     {
       "path": "./apps/product-service"
+    },
+    {
+      "path": "./apps/kafka-service-e2e"
+    },
+    {
+      "path": "./apps/kafka-service"
     }
   ]
 }

@@ -1,0 +1,34 @@
+{
+  "name": "kafka-service",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "node src/main.ts"
+  },
+  "nx": {
+    "name": "kafka-service",
+    "project-type": "application",
+    "sourceType": "kafka-service/src",
+    "targets": {
+      "serve": {
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "kafka-service:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "kafka-service:build:development"
+          },
+          "production": {
+            "buildTarget": "kafka-service:build:production"
+          }
+        }
+      }
+    }
+  }
+}

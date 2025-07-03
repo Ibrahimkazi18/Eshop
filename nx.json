@@ -40,7 +40,8 @@
         "targetName": "test"
       },
       "exclude": [
-        "apps/auth-service-e2e/**/*"
+        "apps/auth-service-e2e/**/*",
+        "apps/kafka-service-e2e/**/*"
       ]
     },
     {

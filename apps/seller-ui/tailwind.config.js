@@ -11,7 +11,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily : {
-        Poppins : ["var(--font-poppins)"],
+        Roboto: ["var(--font-roboto)"],
+        Poppins: ["var(--font-poppins)"],
+        Jost: ["var(--font-jost)"],
       }
     },
   },

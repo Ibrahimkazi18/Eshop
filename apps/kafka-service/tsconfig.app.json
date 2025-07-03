@@ -1,8 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "out-tsc/auth-service",
-    "types": [ "node", "express"],
+    "outDir": "out-tsc/kafka-service",
+    "types": [
+      "node",
+      "express"
+    ],
     "rootDir": "../../",
     "tsBuildInfoFile": "out-tsc/auth-service/tsconfig.app.tsbuildinfo"
   },
@@ -18,4 +21,3 @@
     "src/**/*.test.ts"
   ]
 }
-

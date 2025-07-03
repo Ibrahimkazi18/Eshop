@@ -1,6 +1,6 @@
 import Header from '../shared/widgets/header';
 import './global.css';
-import { Poppins, Roboto } from "next/font/google"
+import { Poppins, Roboto, Jost } from "next/font/google"
 import Providers from './providers';
 import { Toaster } from 'react-hot-toast';
 
@@ -21,6 +21,11 @@ const poppins = Poppins({
   variable: "--font-poppins",
 })
 
+const jost = Jost({
+  subsets: ["latin"],
+  weight: ["100", "300", "400", "500", "700", "900"],
+  variable: "--font-jost",
+})
 
 export default function RootLayout({
   children,
@@ -29,7 +34,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${roboto.variable} ${poppins.variable}`}>
+      <body className={`${roboto.variable} ${poppins.variable} ${jost.variable}`}>
         <Providers>
         <Header />
         <Toaster 
