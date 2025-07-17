@@ -22,7 +22,9 @@
     "paths": {
       "@packages/*": [
         "packages/*"
-      ]
+      ],
+      "@packages/utils/*": ["packages/utils/*"],
+      "@packages/libs/*": ["packages/libs/*"]
     },
     "customConditions": [
       "development"

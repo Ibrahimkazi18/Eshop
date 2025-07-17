@@ -48,10 +48,10 @@ app.use("/product", proxy("http://localhost:6002"));
 app.use("/", proxy("http://localhost:6001"));
 
 const port = 8080;
-const server = app.listen(port, () => {
+const server = app.listen(port, async () => {
   console.log(`Listening at http://localhost:${port}/api`);
   try {
-    initializeConfig();
+    await initializeConfig();
     console.log(`Site config initialized succesfully`);
   } catch (error) {
     console.error("Listening Main.ts Error: ", error);

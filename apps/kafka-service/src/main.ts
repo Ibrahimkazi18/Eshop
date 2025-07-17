@@ -1,35 +1,67 @@
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import { errorMiddleware } from '@packages/error-handler/error-middleware';
-import router from './routes/kafka.router';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-const app = express();
+import { kafka } from "@packages/utils/kafka";
+import { updateUserAnalytics } from "./services/analytics.service";
 
-app.use(cors({
-    origin: ["http://localhost:3000"],
-    allowedHeaders: ["Authorization", "Content-Type"],
-    credentials: true,
-}));
+const consumer = kafka.consumer({groupId : "user-events-group"});
 
-app.use(express.json());
-app.use(cookieParser());
+const eventQueue : any[] = [];
 
-app.get('/', (req, res) => {
-    res.send({ 'message': 'Hello API'});
-});
 
-// Routes
-app.use("/api", router);
+const processQueue = async () => {
+    if(eventQueue.length === 0) return;
 
-app.use(errorMiddleware);
+    const events = [...eventQueue];
+    eventQueue.length = 0;
 
-const port = process.env.PORT || 6003;
+    for (const event of events) {
+        if(event.action === "shop_visit") {
+            // update shop analytics
+        }
 
-const server = app.listen(port, () => {
-    console.log(`[ ready ] Kafka Service running at http://localhost:${port}/api`);
-})
+        const validActions = [
+            "add_to_wishlist",
+            "remove_from_wishlist",
+            "add_to_cart",
+            "remove_from_cart",
+            "product_view",
+        ];
 
-server.on("error", (err) => {
-    console.log("Server Error: ", err);
-});
+        if(!event.action || !validActions.includes(event.action)) {
+            continue;
+        }
+
+        try {
+            await updateUserAnalytics(event);
+        } catch (error) {
+            console.error("Error processing event:" ,error);
+        }
+    }
+}
+
+setInterval(processQueue, 3000);
+
+
+// kafka consumer for user events...
+export const consumeKafkaMessages = async() => {
+    // connect to kafka broker
+    await consumer.connect();
+    await consumer.subscribe({topic: "users-events", fromBeginning: false});
+
+    await consumer.run({
+        eachMessage: async ({ message }) => {
+            if (!message.value) {
+                return;
+            }
+            try {
+                const event = JSON.parse(message.value.toString());
+                eventQueue.push(event);
+            } catch (error) {
+                console.error('Error parsing Kafka message:', error);
+            }
+        },
+    });
+}
+
+consumeKafkaMessages().catch(console.error);
