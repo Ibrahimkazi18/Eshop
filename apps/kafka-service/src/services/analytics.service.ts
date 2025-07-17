@@ -3,8 +3,6 @@ import prisma from "@packages/libs/prisma";
 
 export const updateUserAnalytics = async (event : any) => {
     try {
-        console.log("Incoming event:", event);
-
         const existingData = await prisma.useranalytics.findUnique({
             where : {
                 userId : event.userId
